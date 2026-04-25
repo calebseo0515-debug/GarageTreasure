@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   floatingCard: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 180,
     left: 16,
     right: 16,
     backgroundColor: '#FFFFFF',
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 24,
-    bottom: 180,
+    bottom: 280,
     width: 64,
     height: 64,
     borderRadius: 32,
