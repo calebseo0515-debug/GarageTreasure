@@ -1,9 +1,11 @@
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
+const { height } = Dimensions.get('window');
+
 export default function MapScreen() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [region] = useState({
     latitude: 34.0522,
     longitude: -118.2437,
@@ -17,7 +19,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Elegant Header with Blur Effect */}
+      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.header}>
           <Text style={styles.logo}>GarageTreasure</Text>
@@ -44,29 +46,32 @@ export default function MapScreen() {
         </Text>
       </View>
 
-      {/* Map Placeholder - Premium Feel */}
+      {/* Map Container */}
       <View style={styles.mapContainer}>
         <View style={styles.mapPlaceholder}>
-          <View style={styles.mapOverlay}>
+          {/* Stats at Top of Map */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{sales.length}</Text>
+              <Text style={styles.statLabel}>Active Sales</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>2.3</Text>
+              <Text style={styles.statLabel}>mi nearby</Text>
+            </View>
+          </View>
+          
+          {/* Map Text */}
+          <View style={styles.mapCenter}>
             <Text style={styles.mapTitle}>Interactive Map</Text>
             <Text style={styles.mapSubtitle}>Available on iPhone app</Text>
-            <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{sales.length}</Text>
-                <Text style={styles.statLabel}>Active Sales</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>2.3</Text>
-                <Text style={styles.statLabel}>mi nearby</Text>
-              </View>
-            </View>
           </View>
         </View>
       </View>
 
-      {/* Floating Filter Card */}
-      <View style={styles.floatingCard}>
-        <View style={styles.filterRow}>
+      {/* Filter Bar - Fixed at Bottom */}
+      <View style={styles.filterBar}>
+        <View style={styles.filterChips}>
           <View style={styles.filterChip}>
             <Text style={styles.filterEmoji}>📅</Text>
             <Text style={styles.filterText}>This Weekend</Text>
@@ -75,22 +80,22 @@ export default function MapScreen() {
             <Text style={styles.filterEmoji}>📍</Text>
             <Text style={styles.filterText}>6 mi</Text>
           </View>
-          <TouchableOpacity 
-  style={styles.filterButton}
-  onPress={() => router.push('/filter')}
->
-  <Text style={styles.filterButtonText}>All Filters</Text>
-</TouchableOpacity>
         </View>
+        <TouchableOpacity 
+          style={styles.allFiltersButton}
+          onPress={() => router.push('/filter')}
+        >
+          <Text style={styles.allFiltersText}>Filters</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Premium FAB */}
+      {/* FAB - Above Filter Bar */}
       <TouchableOpacity 
-  style={styles.fab}
-  onPress={() => router.push('/create-sale')}
->
-  <Text style={styles.fabIcon}>+</Text>
-</TouchableOpacity>
+        style={styles.fab}
+        onPress={() => router.push('/create-sale')}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -168,26 +173,46 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     margin: 16,
+    marginBottom: 0,
   },
   mapPlaceholder: {
     flex: 1,
     backgroundColor: '#E8F4F8',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
+    padding: 20,
   },
-  mapOverlay: {
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#86868B',
+    fontWeight: '500',
+  },
+  mapCenter: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
   },
   mapTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: '#1D1D1F',
     marginBottom: 8,
@@ -195,101 +220,69 @@ const styles = StyleSheet.create({
   mapSubtitle: {
     fontSize: 15,
     color: '#86868B',
-    marginBottom: 32,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  statCard: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
-    paddingHorizontal: 28,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  statNumber: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#86868B',
-    fontWeight: '500',
-  },
-  floatingCard: {
-    position: 'absolute',
-    bottom: 180,
-    left: 16,
-    right: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  filterRow: {
+  filterBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 16,
+    gap: 8,
+  },
+  filterChips: {
+    flexDirection: 'row',
+    flex: 1,
+    gap: 8,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F5F5F7',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 4,
   },
   filterEmoji: {
-    fontSize: 16,
+    fontSize: 14,
   },
   filterText: {
-    fontSize: 15,
+    fontSize: 13,
     color: '#1D1D1F',
     fontWeight: '500',
   },
-  filterButton: {
-    flex: 1,
+  allFiltersButton: {
     backgroundColor: '#007AFF',
-    paddingVertical: 10,
-    borderRadius: 20,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 16,
   },
-  filterButtonText: {
+  allFiltersText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
   fab: {
     position: 'absolute',
-    right: 24,
-    bottom: 280,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    right: 20,
+    bottom: 100,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowRadius: 8,
+    elevation: 8,
   },
   fabIcon: {
-    fontSize: 32,
+    fontSize: 28,
     color: '#FFFFFF',
     fontWeight: '300',
   },
