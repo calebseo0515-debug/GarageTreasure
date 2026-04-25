@@ -1,112 +1,333 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { useState } from 'react';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+export default function AlertsScreen() {
+  const [allNotifications, setAllNotifications] = useState(true);
+  const [newSales, setNewSales] = useState(true);
+  const [priceDrops, setPriceDrops] = useState(false);
+  const [favorites, setFavorites] = useState(true);
+  const [messages, setMessages] = useState(true);
 
-export default function TabTwoScreen() {
+  const [savedSearches, setSavedSearches] = useState([
+    { id: 1, name: 'Antique Furniture', location: 'Los Angeles', distance: '6 mi' },
+    { id: 2, name: 'Electronics', location: 'Santa Monica', distance: '12 mi' },
+  ]);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Alerts</Text>
+        <Text style={styles.headerSubtitle}>Stay updated on sales you care about</Text>
+      </View>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Master Toggle */}
+        <View style={styles.section}>
+          <View style={styles.masterToggle}>
+            <View style={styles.masterInfo}>
+              <Text style={styles.masterTitle}>🔔 All Notifications</Text>
+              <Text style={styles.masterSubtitle}>
+                {allNotifications ? 'You will receive alerts' : 'Paused'}
+              </Text>
+            </View>
+            <Switch
+              value={allNotifications}
+              onValueChange={setAllNotifications}
+              trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor="#E5E5EA"
+            />
+          </View>
+        </View>
+
+        {/* Notification Types */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Notification Types</Text>
+          
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>🆕 New Sales Nearby</Text>
+              <Text style={styles.settingDescription}>When sales are posted in your area</Text>
+            </View>
+            <Switch
+              value={newSales}
+              onValueChange={setNewSales}
+              disabled={!allNotifications}
+              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>💰 Price Drops</Text>
+              <Text style={styles.settingDescription}>When items you favorited drop in price</Text>
+            </View>
+            <Switch
+              value={priceDrops}
+              onValueChange={setPriceDrops}
+              disabled={!allNotifications}
+              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>⭐ Favorite Sales</Text>
+              <Text style={styles.settingDescription}>Updates on sales you've saved</Text>
+            </View>
+            <Switch
+              value={favorites}
+              onValueChange={setFavorites}
+              disabled={!allNotifications}
+              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>💬 Messages</Text>
+              <Text style={styles.settingDescription}>When sellers respond to your inquiries</Text>
+            </View>
+            <Switch
+              value={messages}
+              onValueChange={setMessages}
+              disabled={!allNotifications}
+              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        {/* Saved Searches */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Saved Searches</Text>
+            <TouchableOpacity>
+              <Text style={styles.addButton}>+ Add</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {savedSearches.map((search, index) => (
+            <View key={search.id}>
+              {index > 0 && <View style={styles.divider} />}
+              <View style={styles.searchCard}>
+                <View style={styles.searchIcon}>
+                  <Text style={styles.searchEmoji}>🔍</Text>
+                </View>
+                <View style={styles.searchInfo}>
+                  <Text style={styles.searchName}>{search.name}</Text>
+                  <Text style={styles.searchDetails}>
+                    📍 {search.location} • {search.distance}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.deleteButton}>
+                  <Text style={styles.deleteText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Notification Schedule */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>⏰ Quiet Hours</Text>
+          <Text style={styles.sectionSubtitle}>Don't send notifications during these times</Text>
+          
+          <View style={styles.timeRange}>
+            <View style={styles.timeCard}>
+              <Text style={styles.timeLabel}>From</Text>
+              <Text style={styles.timeValue}>10:00 PM</Text>
+            </View>
+            <Text style={styles.timeSeparator}>→</Text>
+            <View style={styles.timeCard}>
+              <Text style={styles.timeLabel}>To</Text>
+              <Text style={styles.timeValue}>8:00 AM</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Bottom Spacing */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F7',
   },
-  titleContainer: {
+  header: {
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    letterSpacing: -1,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 17,
+    color: '#86868B',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  section: {
+    backgroundColor: '#FFFFFF',
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  masterToggle: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  masterInfo: {
+    flex: 1,
+  },
+  masterTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    marginBottom: 4,
+  },
+  masterSubtitle: {
+    fontSize: 15,
+    color: '#86868B',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1D1D1F',
+  },
+  sectionSubtitle: {
+    fontSize: 15,
+    color: '#86868B',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  addButton: {
+    fontSize: 17,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  settingLabel: {
+    fontSize: 17,
+    color: '#1D1D1F',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 15,
+    color: '#86868B',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    marginVertical: 4,
+  },
+  searchCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  searchIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E8F4F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  searchEmoji: {
+    fontSize: 24,
+  },
+  searchInfo: {
+    flex: 1,
+  },
+  searchName: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    marginBottom: 4,
+  },
+  searchDetails: {
+    fontSize: 15,
+    color: '#86868B',
+  },
+  deleteButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteText: {
+    fontSize: 32,
+    color: '#86868B',
+    fontWeight: '300',
+  },
+  timeRange: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  timeCard: {
+    flex: 1,
+    backgroundColor: '#F5F5F7',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  timeLabel: {
+    fontSize: 13,
+    color: '#86868B',
+    marginBottom: 4,
+  },
+  timeValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1D1D1F',
+  },
+  timeSeparator: {
+    fontSize: 20,
+    color: '#86868B',
+    marginHorizontal: 12,
   },
 });
