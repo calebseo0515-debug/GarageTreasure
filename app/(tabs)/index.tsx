@@ -1,289 +1,154 @@
-import { StyleSheet, View, Text, TouchableOpacity, Platform, Dimensions } from 'react-native';
-import { useState } from 'react';
+import React from 'react';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-
-const { height } = Dimensions.get('window');
+import SaleMap from '../../components/sale-map';
+import { useNearbySales } from '../../hooks/use-sales';
+import { useFilters } from '../../store/filter-store';
+import { useLocation } from '../../hooks/use-location';
+import { AppNavBar, FilterChipRow, SaleCard } from '../../components/karina-components';
+import { Colors, Typography, Radius, Spacing } from '../../constants/theme';
 
 export default function MapScreen() {
   const router = useRouter();
-  const [region] = useState({
-    latitude: 34.0522,
-    longitude: -118.2437,
-  });
-
-  const sales = [
-    { id: 1, title: "Big Estate Sale", latitude: 34.0522, longitude: -118.2437 },
-    { id: 2, title: "Moving Sale", latitude: 34.0622, longitude: -118.2537 },
-    { id: 3, title: "Garage Sale", latitude: 34.0422, longitude: -118.2337 }
-  ];
+  const { filters } = useFilters();
+  const { location } = useLocation();
+  const { sales, loading } = useNearbySales(
+    location.latitude,
+    location.longitude,
+    filters.distance
+  );
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <View style={styles.header}>
-          <Text style={styles.logo}>GarageTreasure</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Text style={styles.icon}>🔍</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <View style={styles.notificationBadge}>
-                <Text style={styles.badgeText}>3</Text>
-              </View>
-              <Text style={styles.icon}>🔔</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+    <SafeAreaView style={styles.safe}>
+      <AppNavBar />
+      <FilterChipRow />
 
-      {/* Hero Section */}
-      <View style={styles.heroSection}>
-        <Text style={styles.heroTitle}>Discover Hidden</Text>
-        <Text style={styles.heroTitle}>Treasures Nearby</Text>
-        <Text style={styles.heroSubtitle}>
-          Find amazing deals at garage sales around Los Angeles
-        </Text>
-      </View>
-
-      {/* Map Container */}
+      {/* Map */}
       <View style={styles.mapContainer}>
-        <View style={styles.mapPlaceholder}>
-          {/* Stats at Top of Map */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{sales.length}</Text>
-              <Text style={styles.statLabel}>Active Sales</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>2.3</Text>
-              <Text style={styles.statLabel}>mi nearby</Text>
-            </View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.amber} />
           </View>
-          
-          {/* Map Text */}
-          <View style={styles.mapCenter}>
-            <Text style={styles.mapTitle}>Interactive Map</Text>
-            <Text style={styles.mapSubtitle}>Available on iPhone app</Text>
-          </View>
-        </View>
+        ) : (
+          <SaleMap
+            sales={sales}
+            userLatitude={location.latitude}
+            userLongitude={location.longitude}
+            radiusMiles={filters.distance}
+          />
+        )}
       </View>
 
-      {/* Filter Bar - Fixed at Bottom */}
-      <View style={styles.filterBar}>
-        <View style={styles.filterChips}>
-          <View style={styles.filterChip}>
-            <Text style={styles.filterEmoji}>📅</Text>
-            <Text style={styles.filterText}>This Weekend</Text>
-          </View>
-          <View style={styles.filterChip}>
-            <Text style={styles.filterEmoji}>📍</Text>
-            <Text style={styles.filterText}>6 mi</Text>
-          </View>
-        </View>
-        <TouchableOpacity 
-          style={styles.allFiltersButton}
-          onPress={() => router.push('/filter')}
-        >
-          <Text style={styles.allFiltersText}>Filters</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Sale List */}
+      <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+        {!loading && sales.length === 0 ? (
+          <EmptyState onSubmit={() => router.push('/create-sale')} />
+        ) : (
+          <>
+            <Text style={styles.listHeader}>
+              {sales.length} sale{sales.length !== 1 ? 's' : ''} this weekend near you
+            </Text>
+            {sales.map(s => (
+              <TouchableOpacity
+                key={s.id}
+                onPress={() => router.push({ pathname: '/sale-detail', params: { id: String(s.id) } })}
+                activeOpacity={0.8}
+              >
+                <SaleCard
+                  emoji={getSaleEmoji(s.sale_type)}
+                  thumbBg={getSaleThumbBg(s.sale_type)}
+                  type={getSaleTypeLabel(s.sale_type)}
+                  name={s.title}
+                  schedule={`${formatDate(s.start_date)} · ${s.start_time?.slice(0,5)} – ${s.end_time?.slice(0,5)}`}
+                  distance={s.city}
+                />
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+      </ScrollView>
 
-      {/* FAB - Above Filter Bar */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push('/create-sale')}
-      >
-        <Text style={styles.fabIcon}>+</Text>
+      {/* Filter button */}
+      <TouchableOpacity style={styles.filterBtn} onPress={() => router.push('/filter')}>
+        <Text style={styles.filterBtnText}>⚙ Filters · {filters.distance} mi</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
+
+function EmptyState({ onSubmit }: { onSubmit: () => void }) {
+  return (
+    <View style={styles.emptyWrap}>
+      <Text style={styles.emptyIcon}>🗺</Text>
+      <Text style={styles.emptyTitle}>No sales listed near you{'\n'}this weekend yet.</Text>
+      <Text style={styles.emptySub}>
+        Check back Friday — we update the map as sales are reviewed and approved.
+      </Text>
+      <TouchableOpacity style={styles.emptyBtn} onPress={onSubmit} activeOpacity={0.8}>
+        <Text style={styles.emptyBtnText}>Submit a sale for review →</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+function getSaleEmoji(type: string) {
+  if (type === 'estate') return '🛋';
+  if (type === 'moving') return '📦';
+  if (type === 'yard') return '🌿';
+  return '🔧';
+}
+
+function getSaleThumbBg(type: string) {
+  if (type === 'estate') return Colors.amberLight;
+  if (type === 'moving') return Colors.tealLight;
+  if (type === 'yard') return '#DCFCE7';
+  return '#EDE9FE';
+}
+
+function getSaleTypeLabel(type: string) {
+  if (type === 'estate') return 'Estate Sale';
+  if (type === 'moving') return 'Moving Sale';
+  if (type === 'yard') return 'Yard Sale';
+  return 'Garage Sale';
+}
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F7',
+  safe: { flex: 1, backgroundColor: Colors.cream },
+  mapContainer: { height: 220 },
+  loadingContainer: { height: 220, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.cream },
+  list: { flex: 1 },
+  listContent: { padding: Spacing.md, paddingBottom: 80 },
+  listHeader: {
+    fontSize: 11, fontFamily: Typography.sansSemiBold,
+    color: Colors.muted, marginBottom: Spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5,
   },
-  headerContainer: {
-    paddingTop: 50,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
+  filterBtn: {
+    position: 'absolute', bottom: 16, alignSelf: 'center',
+    backgroundColor: Colors.charcoal, borderRadius: Radius.pill,
+    paddingHorizontal: 20, paddingVertical: 10,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2, shadowRadius: 8, elevation: 6,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+  filterBtnText: { fontSize: 12, fontFamily: Typography.sansSemiBold, color: Colors.cream },
+  emptyWrap: { alignItems: 'center', paddingTop: 32, paddingHorizontal: 24 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: {
+    fontFamily: Typography.displayFont, fontSize: 16, color: Colors.charcoal,
+    textAlign: 'center', lineHeight: 24, marginBottom: 10,
   },
-  logo: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1D1D1F',
-    letterSpacing: -0.5,
+  emptySub: {
+    fontFamily: Typography.sansFont, fontSize: 12, color: Colors.muted,
+    textAlign: 'center', lineHeight: 18, marginBottom: 20,
   },
-  headerRight: {
-    flexDirection: 'row',
-    gap: 12,
+  emptyBtn: {
+    backgroundColor: Colors.charcoal, borderRadius: Radius.pill,
+    paddingHorizontal: 20, paddingVertical: 10,
   },
-  iconButton: {
-    position: 'relative',
-  },
-  icon: {
-    fontSize: 24,
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#FF3B30',
-    borderRadius: 10,
-    width: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  heroSection: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
-  },
-  heroTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#1D1D1F',
-    letterSpacing: -1,
-    lineHeight: 40,
-  },
-  heroSubtitle: {
-    fontSize: 17,
-    color: '#86868B',
-    marginTop: 8,
-    lineHeight: 24,
-  },
-  mapContainer: {
-    flex: 1,
-    margin: 16,
-    marginBottom: 0,
-  },
-  mapPlaceholder: {
-    flex: 1,
-    backgroundColor: '#E8F4F8',
-    borderRadius: 20,
-    overflow: 'hidden',
-    padding: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#86868B',
-    fontWeight: '500',
-  },
-  mapCenter: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mapTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1D1D1F',
-    marginBottom: 8,
-  },
-  mapSubtitle: {
-    fontSize: 15,
-    color: '#86868B',
-  },
-  filterBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 16,
-    gap: 8,
-  },
-  filterChips: {
-    flexDirection: 'row',
-    flex: 1,
-    gap: 8,
-  },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F7',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    gap: 4,
-  },
-  filterEmoji: {
-    fontSize: 14,
-  },
-  filterText: {
-    fontSize: 13,
-    color: '#1D1D1F',
-    fontWeight: '500',
-  },
-  allFiltersButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 16,
-  },
-  allFiltersText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 100,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  fabIcon: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: '300',
-  },
+  emptyBtnText: { fontFamily: Typography.sansSemiBold, fontSize: 12, color: Colors.cream },
 });

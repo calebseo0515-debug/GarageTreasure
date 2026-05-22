@@ -1,24 +1,67 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View, Text, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import { useSale } from '../hooks/use-sales';
 
 export default function SaleDetailScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { sale, loading } = useSale(id);
 
-  const sale = {
-    id: 1,
-    title: "Big Estate Sale",
-    subtitle: "Antiques & Furniture",
-    date: "April 26, 2026",
-    time: "8:00 AM - 4:00 PM",
-    address: "123 Main St, Los Angeles, CA 90001",
-    distance: "1.4 mi",
-    description: "Moving sale! Selling furniture, vintage records, kitchen appliances, and much more. Early birds welcome! Cash only. Prices negotiable.",
-    categories: ["Antiques", "Furniture", "Kitchen"],
-    rating: 4.8,
-    reviews: 23,
-    host: "Sarah Johnson",
-    memberSince: "2024",
+  const isSourceListing = Boolean(sale?.is_scraped && sale?.source_url);
+
+  const openDirections = () => {
+    if (!sale) return;
+    const query = encodeURIComponent(`${sale.address}, ${sale.city}, ${sale.state}`);
+    const url = Platform.OS === 'ios'
+      ? `maps://?q=${query}`
+      : `https://maps.google.com/?q=${query}`;
+    Linking.openURL(url);
   };
+
+  const openSource = () => {
+    if (!sale?.source_url) return;
+    WebBrowser.openBrowserAsync(sale.source_url);
+  };
+
+  const handlePrimaryAction = () => {
+    if (isSourceListing) {
+      openSource();
+      return;
+    }
+
+    openDirections();
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading sale details...</Text>
+      </View>
+    );
+  }
+
+  if (!sale) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.emptyTitle}>Sale not found</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.emptyButton}>
+          <Text style={styles.emptyButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -47,22 +90,22 @@ export default function SaleDetailScreen() {
           
           {/* Floating Distance Badge */}
           <View style={styles.distanceBadge}>
-            <Text style={styles.distanceText}>{sale.distance} away</Text>
+            <Text style={styles.distanceText}>{sale.city}</Text>
           </View>
         </View>
 
         {/* Title Section */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>{sale.title}</Text>
-          <Text style={styles.subtitle}>{sale.subtitle}</Text>
+          <Text style={styles.subtitle}>{sale.city}, {sale.state}</Text>
           
           {/* Rating */}
           <View style={styles.ratingRow}>
             <View style={styles.ratingBadge}>
               <Text style={styles.star}>⭐</Text>
-              <Text style={styles.ratingText}>{sale.rating}</Text>
+              <Text style={styles.ratingText}>{sale.view_count}</Text>
             </View>
-            <Text style={styles.reviews}>({sale.reviews} reviews)</Text>
+            <Text style={styles.reviews}>views</Text>
           </View>
         </View>
 
@@ -74,8 +117,8 @@ export default function SaleDetailScreen() {
               <Text style={styles.cardIcon}>📅</Text>
               <Text style={styles.cardTitle}>When</Text>
             </View>
-            <Text style={styles.cardMainText}>{sale.date}</Text>
-            <Text style={styles.cardSubText}>{sale.time}</Text>
+            <Text style={styles.cardMainText}>{formatDate(sale.start_date)}</Text>
+            <Text style={styles.cardSubText}>{sale.start_time} - {sale.end_time}</Text>
           </View>
 
           {/* Location Card */}
@@ -85,11 +128,17 @@ export default function SaleDetailScreen() {
               <Text style={styles.cardTitle}>Location</Text>
             </View>
             <Text style={styles.cardMainText}>{sale.address}</Text>
+            <Text style={styles.cardSubText}>{sale.city}, {sale.state} {sale.zip}</Text>
+            {isSourceListing && (
+              <Text style={styles.sourceNote}>
+                Approximate area shown. Confirm the exact address and details from the source before going.
+              </Text>
+            )}
             
             {/* Map Preview */}
             <View style={styles.mapPreview}>
               <Text style={styles.mapIcon}>🗺️</Text>
-              <Text style={styles.mapText}>Map Preview</Text>
+              <Text style={styles.mapText}>{isSourceListing ? 'Approximate Area' : 'Map Preview'}</Text>
             </View>
           </View>
 
@@ -106,7 +155,7 @@ export default function SaleDetailScreen() {
           <View style={styles.infoCard}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardIcon}>🏷️</Text>
-              <Text style={styles.cardTitle}>What's Available</Text>
+              <Text style={styles.cardTitle}>Available Items</Text>
             </View>
             <View style={styles.categoryGrid}>
               {sale.categories.map((cat, index) => (
@@ -125,11 +174,11 @@ export default function SaleDetailScreen() {
             </View>
             <View style={styles.hostInfo}>
               <View style={styles.hostAvatar}>
-                <Text style={styles.hostInitial}>{sale.host[0]}</Text>
+                <Text style={styles.hostInitial}>G</Text>
               </View>
               <View style={styles.hostDetails}>
-                <Text style={styles.hostName}>{sale.host}</Text>
-                <Text style={styles.hostMember}>Member since {sale.memberSince}</Text>
+                <Text style={styles.hostName}>GarageTreasure</Text>
+                <Text style={styles.hostMember}>Curated local listing</Text>
               </View>
             </View>
           </View>
@@ -141,9 +190,9 @@ export default function SaleDetailScreen() {
 
       {/* Floating Bottom Bar */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.directionsButton}>
-          <Text style={styles.directionsIcon}>🚗</Text>
-          <Text style={styles.directionsText}>Get Directions</Text>
+        <TouchableOpacity style={styles.directionsButton} onPress={handlePrimaryAction}>
+          <Text style={styles.directionsIcon}>{isSourceListing ? '↗' : '🚗'}</Text>
+          <Text style={styles.directionsText}>{isSourceListing ? 'View Source Details' : 'Get Directions'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -154,6 +203,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F7',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+    color: '#86868B',
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    marginBottom: 16,
+  },
+  emptyButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  emptyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   header: {
     flexDirection: 'row',
@@ -315,6 +391,12 @@ const styles = StyleSheet.create({
   cardSubText: {
     fontSize: 15,
     color: '#86868B',
+  },
+  sourceNote: {
+    fontSize: 13,
+    color: '#86868B',
+    lineHeight: 19,
+    marginTop: 10,
   },
   mapPreview: {
     height: 140,

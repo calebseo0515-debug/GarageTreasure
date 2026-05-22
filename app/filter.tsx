@@ -1,13 +1,15 @@
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useFilters } from '../store/filter-store';
 
 export default function FilterScreen() {
   const router = useRouter();
-  
-  const [selectedDate, setSelectedDate] = useState('This Weekend');
-  const [selectedDistance, setSelectedDistance] = useState(6);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const { filters, setFilters } = useFilters();
+
+  const [selectedDate, setSelectedDate] = useState(filters.date);
+  const [selectedDistance, setSelectedDistance] = useState(filters.distance);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(filters.categories);
 
   const dateOptions = ['Today', 'Tomorrow', 'This Weekend', 'This Week', 'This Month'];
   const distanceOptions = [3, 6, 12, 25, 50];
@@ -32,11 +34,11 @@ export default function FilterScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={styles.cancelText} numberOfLines={1}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Filters</Text>
         <TouchableOpacity onPress={resetFilters} style={styles.resetButton}>
-          <Text style={styles.resetText}>Reset</Text>
+          <Text style={styles.resetText} numberOfLines={1}>Reset</Text>
         </TouchableOpacity>
       </View>
 
@@ -136,7 +138,10 @@ export default function FilterScreen() {
       <View style={styles.bottomBar}>
         <TouchableOpacity 
           style={styles.applyButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            setFilters({ distance: selectedDistance, date: selectedDate, categories: selectedCategories });
+            router.back();
+          }}
         >
           <Text style={styles.applyText}>Apply Filters</Text>
         </TouchableOpacity>
@@ -162,7 +167,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   cancelButton: {
-    width: 60,
+    width: 80,
   },
   cancelText: {
     fontSize: 17,
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
     color: '#1D1D1F',
   },
   resetButton: {
-    width: 60,
+    width: 80,
     alignItems: 'flex-end',
   },
   resetText: {

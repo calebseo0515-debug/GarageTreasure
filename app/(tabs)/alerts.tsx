@@ -8,9 +8,9 @@ export default function AlertsScreen() {
   const [favorites, setFavorites] = useState(true);
   const [messages, setMessages] = useState(true);
 
-  const [savedSearches, setSavedSearches] = useState([
-    { id: 1, name: 'Antique Furniture', location: 'Los Angeles', distance: '6 mi' },
-    { id: 2, name: 'Electronics', location: 'Santa Monica', distance: '12 mi' },
+  const [savedSearches] = useState([
+    { id: 1, name: 'Antique Furniture', location: 'Temecula', distance: '6 mi' },
+    { id: 2, name: 'Electronics', location: 'Murrieta', distance: '10 mi' },
   ]);
 
   return (
@@ -80,7 +80,7 @@ export default function AlertsScreen() {
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>⭐ Favorite Sales</Text>
-              <Text style={styles.settingDescription}>Updates on sales you've saved</Text>
+              <Text style={styles.settingDescription}>Updates on sales you have saved</Text>
             </View>
             <Switch
               value={favorites}
@@ -141,7 +141,7 @@ export default function AlertsScreen() {
         {/* Notification Schedule */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>⏰ Quiet Hours</Text>
-          <Text style={styles.sectionSubtitle}>Don't send notifications during these times</Text>
+          <Text style={styles.sectionSubtitle}>Do not send notifications during these times</Text>
           
           <View style={styles.timeRange}>
             <View style={styles.timeCard}>

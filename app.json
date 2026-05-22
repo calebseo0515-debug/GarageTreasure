@@ -12,7 +12,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.calebseo.GarageTreasure",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "GarageTreasure uses your location to show nearby garage sales on the map.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "GarageTreasure uses your location to show nearby garage sales on the map."
       }
     },
     "android": {
