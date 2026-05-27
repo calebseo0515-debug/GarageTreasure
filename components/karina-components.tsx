@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Colors, Typography, Radius, Spacing } from '../constants/theme';
+import { useFilters } from '../store/filter-store';
 
 // ── CuratedBadge ────────────────────────────────────────────────────────
 export const CuratedBadge = () => (
@@ -27,21 +29,55 @@ export const AppNavBar = () => (
 );
 
 // ── FilterChips ─────────────────────────────────────────────────────────
-type ChipProps = { label: string; active?: boolean };
+type ChipProps = { label: string; active?: boolean; onPress?: () => void };
 
-export const FilterChip = ({ label, active = false }: ChipProps) => (
-  <View style={[styles.chip, active && styles.chipActive]}>
+export const FilterChip = ({ label, active = false, onPress }: ChipProps) => (
+  <TouchableOpacity
+    style={[styles.chip, active && styles.chipActive]}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
     <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
-export const FilterChipRow = () => (
-  <View style={styles.chipRow}>
-    <FilterChip label="This weekend" active />
-    <FilterChip label="Near me" />
-    <FilterChip label="Estate" />
-  </View>
-);
+export const FilterChipRow = () => {
+  const router = useRouter();
+  const { filters, updateFilter } = useFilters();
+
+  const toggleDate = () => {
+    updateFilter('date', filters.date === 'This Weekend' ? 'All' : 'This Weekend');
+  };
+
+  const toggleEstate = () => {
+    updateFilter('saleType', filters.saleType === 'estate' ? '' : 'estate');
+  };
+
+  return (
+    <View style={styles.chipRow}>
+      <FilterChip
+        label="This weekend"
+        active={filters.date === 'This Weekend'}
+        onPress={toggleDate}
+      />
+      <FilterChip
+        label="All upcoming"
+        active={filters.date === 'All'}
+        onPress={() => updateFilter('date', 'All')}
+      />
+      <FilterChip
+        label="Near me"
+        active={true}
+        onPress={() => router.push('/filter')}
+      />
+      <FilterChip
+        label="Estate"
+        active={filters.saleType === 'estate'}
+        onPress={toggleEstate}
+      />
+    </View>
+  );
+};
 
 // ── ReviewNoticeBar ─────────────────────────────────────────────────────
 export const ReviewNoticeBar = () => (

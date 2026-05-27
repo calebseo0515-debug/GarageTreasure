@@ -1,17 +1,17 @@
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { useFilters } from '../store/filter-store';
+import { DateFilter, useFilters } from '../store/filter-store';
 
 export default function FilterScreen() {
   const router = useRouter();
   const { filters, setFilters } = useFilters();
 
-  const [selectedDate, setSelectedDate] = useState(filters.date);
+  const [selectedDate, setSelectedDate] = useState<DateFilter>(filters.date);
   const [selectedDistance, setSelectedDistance] = useState(filters.distance);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(filters.categories);
 
-  const dateOptions = ['Today', 'Tomorrow', 'This Weekend', 'This Week', 'This Month'];
+  const dateOptions: DateFilter[] = ['Today', 'This Weekend', 'All'];
   const distanceOptions = [3, 6, 12, 25, 50];
   const categoryOptions = ['Antiques', 'Furniture', 'Electronics', 'Clothing', 'Tools', 'Sports', 'Books', 'Kitchen', 'Toys', 'Other'];
 
@@ -139,7 +139,12 @@ export default function FilterScreen() {
         <TouchableOpacity 
           style={styles.applyButton}
           onPress={() => {
-            setFilters({ distance: selectedDistance, date: selectedDate, categories: selectedCategories });
+            setFilters({
+              ...filters,
+              distance: selectedDistance,
+              date: selectedDate,
+              categories: selectedCategories,
+            });
             router.back();
           }}
         >

@@ -22,8 +22,8 @@ export type Sale = {
   longitude: number;
   start_date: string;
   end_date: string;
-  start_time: string;
-  end_time: string;
+  start_time: string | null;
+  end_time: string | null;
   categories: string[];
   view_count: number;
   source_url?: string | null;

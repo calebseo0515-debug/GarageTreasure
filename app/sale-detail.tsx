@@ -2,6 +2,8 @@ import { ActivityIndicator, StyleSheet, View, Text, ScrollView, TouchableOpacity
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useSale } from '../hooks/use-sales';
+import SaleDetailMap from '../components/sale-detail-map';
+import { formatSaleTime } from '../lib/format-sale-time';
 
 export default function SaleDetailScreen() {
   const router = useRouter();
@@ -118,7 +120,7 @@ export default function SaleDetailScreen() {
               <Text style={styles.cardTitle}>When</Text>
             </View>
             <Text style={styles.cardMainText}>{formatDate(sale.start_date)}</Text>
-            <Text style={styles.cardSubText}>{sale.start_time} - {sale.end_time}</Text>
+            <Text style={styles.cardSubText}>{formatSaleTime(sale.start_time, sale.end_time)}</Text>
           </View>
 
           {/* Location Card */}
@@ -135,11 +137,12 @@ export default function SaleDetailScreen() {
               </Text>
             )}
             
-            {/* Map Preview */}
-            <View style={styles.mapPreview}>
-              <Text style={styles.mapIcon}>🗺️</Text>
-              <Text style={styles.mapText}>{isSourceListing ? 'Approximate Area' : 'Map Preview'}</Text>
-            </View>
+            <SaleDetailMap
+              latitude={sale.latitude}
+              longitude={sale.longitude}
+              title={sale.title}
+              approximate={isSourceListing}
+            />
           </View>
 
           {/* Description Card */}

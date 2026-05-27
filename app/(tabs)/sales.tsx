@@ -2,12 +2,15 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSales } from '../../hooks/use-sales';
-import { SaleCard, ReviewNoticeBar } from '../../components/karina-components';
+import { SaleCard, ReviewNoticeBar, FilterChipRow } from '../../components/karina-components';
 import { Colors, Typography, Spacing } from '../../constants/theme';
+import { useFilters } from '../../store/filter-store';
+import { formatSaleTime } from '../../lib/format-sale-time';
 
 export default function SalesScreen() {
   const router = useRouter();
-  const { sales, loading } = useSales();
+  const { filters } = useFilters();
+  const { sales, loading } = useSales(filters);
 
   const handleSalePress = (saleId: string) => {
     router.push({ pathname: '/sale-detail', params: { id: saleId } });
@@ -47,11 +50,18 @@ export default function SalesScreen() {
         <Text style={styles.headerSub}>{sales.length} active this weekend</Text>
       </View>
 
+      <FilterChipRow />
       <ReviewNoticeBar />
 
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={Colors.amber} />
+        </View>
+      ) : sales.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyIcon}>🗺</Text>
+          <Text style={styles.emptyTitle}>No sales found</Text>
+          <Text style={styles.emptySub}>Try adjusting your filters or check back Friday.</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.list}>
@@ -66,7 +76,7 @@ export default function SalesScreen() {
                 thumbBg={getSaleThumbBg(s.sale_type)}
                 type={getSaleTypeLabel(s.sale_type)}
                 name={s.title}
-                schedule={`${formatDate(s.start_date)} · ${s.start_time?.slice(0,5)} – ${s.end_time?.slice(0,5)}`}
+                schedule={`${formatDate(s.start_date)} · ${formatSaleTime(s.start_time, s.end_time)}`}
                 distance={s.city}
               />
             </TouchableOpacity>
@@ -100,5 +110,9 @@ const styles = StyleSheet.create({
     color: Colors.muted,
   },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: { fontFamily: Typography.displayFont, fontSize: 16, color: Colors.charcoal, textAlign: 'center', marginBottom: 8 },
+  emptySub: { fontFamily: Typography.sansFont, fontSize: 12, color: Colors.muted, textAlign: 'center', lineHeight: 18 },
   list: { padding: Spacing.md },
 });

@@ -7,6 +7,7 @@ import { useFilters } from '../../store/filter-store';
 import { useLocation } from '../../hooks/use-location';
 import { AppNavBar, FilterChipRow, SaleCard } from '../../components/karina-components';
 import { Colors, Typography, Radius, Spacing } from '../../constants/theme';
+import { formatSaleTime } from '../../lib/format-sale-time';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -15,7 +16,8 @@ export default function MapScreen() {
   const { sales, loading } = useNearbySales(
     location.latitude,
     location.longitude,
-    filters.distance
+    filters.distance,
+    filters
   );
 
   return (
@@ -59,7 +61,7 @@ export default function MapScreen() {
                   thumbBg={getSaleThumbBg(s.sale_type)}
                   type={getSaleTypeLabel(s.sale_type)}
                   name={s.title}
-                  schedule={`${formatDate(s.start_date)} · ${s.start_time?.slice(0,5)} – ${s.end_time?.slice(0,5)}`}
+                  schedule={`${formatDate(s.start_date)} · ${formatSaleTime(s.start_time, s.end_time)}`}
                   distance={s.city}
                 />
               </TouchableOpacity>
